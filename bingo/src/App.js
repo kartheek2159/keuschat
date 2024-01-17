@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StringCodec, connect } from 'nats.ws';
 
+
 function App() {
   const [nc, setConnection] = useState(undefined);
   const [lastError, setLastError] = useState("");
