@@ -30,7 +30,7 @@ const ChatApp = () => {
   useEffect(() => {
     setUsersData(hardcodedUsers);
     setMessagesData(hardcodedMessages);
-  }, []);
+  },[]);
 
   const handleUserClick = (userId) => {
     setSelectedUserId(userId);

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt'
 import UserRepo from '../repos/userrepo.js';
 import jwt from 'jsonwebtoken'
+
 const userRepo=new UserRepo();
 export const registeruser=async(req,res)=>{
     const {username}=req.body
