@@ -1,0 +1,44 @@
+.chat-container {
+    display: flex;
+  }
+  
+  .user-list {
+    flex: 1;
+    margin-right: 20px;
+  }
+  
+  .user-list h2,
+  .message-section h2 {
+    margin-bottom: 10px;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    cursor: pointer;
+    margin-bottom: 5px;
+    padding: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  .message-section {
+    flex: 2;
+  }
+  
+  .message-input {
+    display: flex;
+  }
+  
+  .message-input input {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .message-input button {
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  

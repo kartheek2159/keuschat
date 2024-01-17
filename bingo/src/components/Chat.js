@@ -1,38 +1,39 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './chatApp.css'
 
 const ChatApp = () => {
   const [usersData, setUsersData] = useState([]);
+  const [ud, setUd] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [messagesData, setMessagesData] = useState({});
   const [newMessage, setNewMessage] = useState('');
-
-  const hardcodedUsers = [
-    { id: 1, name: 'John' },
-    { id: 2, name: 'Alice' },
-    { id: 3, name: 'Bob' },
-  ];
-
-  const hardcodedMessages = {
-    1: [
-      { id: 1, text: 'Hi, how are you?' },
-      { id: 2, text: "I'm good, thanks!" },
-    ],
-    2: [
-      { id: 1, text: 'Hello there!' },
-      { id: 2, text: "How's it going?" },
-    ],
-    3: [
-      { id: 1, text: 'Hey!' },
-      { id: 2, text: "I'm doing well, thanks." },
-    ],
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    setUsersData(hardcodedUsers);
-    setMessagesData(hardcodedMessages);
-  },[]);
+    const sud = localStorage.getItem('userData');
+    if (sud) {
+      const parseud = JSON.parse(sud);
+      setUd(parseud);
+      console.log(parseud['user']['email']);
+    } else {
+      navigate('/login');
+    }
+
+    // Fetch users data from the API
+    axios.get('http://localhost:7000/user')
+      .then((response) => {
+        setUsersData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching users:', error);
+      });
+
+  }, [navigate]);
 
   const handleUserClick = (userId) => {
+    console.log(userId)
     setSelectedUserId(userId);
   };
 
@@ -61,19 +62,20 @@ const ChatApp = () => {
   };
 
   return (
-    <div>
-      <div>
+    <div className="chat-container">
+      <div className="user-list">
         <h2>User List</h2>
+        <h2>Current user name {ud ? ud['user']['username'] : ''}</h2>
         <ul>
           {usersData.map((user) => (
-            <li key={user.id} onClick={() => handleUserClick(user.id)}>
-              {user.name}
+            <li key={user._id} onClick={() => handleUserClick(user._id)}>
+              {user.username}
             </li>
           ))}
         </ul>
       </div>
 
-      <div>
+      <div className="message-section">
         <h2>Messages</h2>
         {selectedUserId ? (
           <div>
@@ -82,13 +84,15 @@ const ChatApp = () => {
                 <li key={message.id}>{message.text}</li>
               ))}
             </ul>
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your message..."
-            />
-            <button onClick={handleSendMessage}>Send</button>
+            <div className="message-input">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+              />
+              <button onClick={handleSendMessage}>Send</button>
+            </div>
           </div>
         ) : (
           <p>Select a user to view messages.</p>
