@@ -23,6 +23,7 @@ const LoginPage = () => {
       password:password,
     }).then((res)=>{
       console.log(res.data)
+      localStorage.setItem('userData', JSON.stringify(res.data));
       navigate('/chat')
     }).catch((err)=>{
       console.log(err)
