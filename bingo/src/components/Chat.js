@@ -1,26 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { StringCodec, connect } from 'nats.ws';
 import axios from 'axios';
 import './chatApp.css'
 
 const ChatApp = () => {
   const [usersData, setUsersData] = useState([]);
   const [ud, setUd] = useState(null);
-  const [selectedUserId, setSelectedUserId] = useState(null);
-  const [messagesData, setMessagesData] = useState({});
-  const [newMessage, setNewMessage] = useState('');
-  const navigate = useNavigate();
 
+  const [currid,setCurrid]=useState('')
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [nc, setConnection] = useState(undefined);
+  const [receivedMessages, setReceivedMessages] = useState([]);
+  const sc = StringCodec();
+
+  const connectToNats = async (commonSubject) => {
+    try {
+      const natsConnection = await connect({
+        servers: "http://localhost:9090",
+        headers: {
+          "Access-Control-Allow-Origin": "http://localhost:3000",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept",
+        },
+      });
+      setConnection(natsConnection);
+      console.log(commonSubject)
+
+      const subscription = natsConnection.subscribe(commonSubject, {
+        callback: (err, msg) => {
+          if (err) {
+            console.error(err);
+          } else {
+            const messageObject = JSON.parse(sc.decode(msg.data));
+            console.log("Received message:", messageObject);
+            
+            setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
+            console.log(subscription);
+          }
+        },
+      });
+      
+      
+      console.log(subscription);
+
+      return () => {
+        if (nc) {
+          // Unsubscribe and handle the promise resolution
+          nc.unsubscribe().then(() => {
+            console.log("Unsubscribed successfully");
+          });
+        }
+      };
+    } catch (err) {
+    
+      console.error(err);
+    }
+  };
   useEffect(() => {
     const sud = localStorage.getItem('userData');
-    if (sud) {
-      const parseud = JSON.parse(sud);
-      setUd(parseud);
-      console.log(parseud['user']['email']);
-    } else {
-      navigate('/login');
-    }
-
+    const parseud = JSON.parse(sud);
+    setUd(parseud);
+    setCurrid(parseud['user']['_id'])
     // Fetch users data from the API
     axios.get('http://localhost:7000/user')
       .then((response) => {
@@ -29,37 +71,41 @@ const ChatApp = () => {
       .catch((error) => {
         console.error('Error fetching users:', error);
       });
+      
+      }
 
-  }, [navigate]);
+  , [nc]);
 
-  const handleUserClick = (userId) => {
-    console.log(userId)
+  const handleUserClick =async (userId) => {
+    const userIDs = [currid, userId].sort(); // Sort the user IDs
+    const commonSubject = `chat.${userIDs[0]}.${userIDs[1]}`;
     setSelectedUserId(userId);
+    connectToNats(commonSubject);
   };
 
   const handleSendMessage = () => {
     if (newMessage.trim() === '') {
       return; // Don't send empty messages
     }
-
-    const updatedMessages = { ...messagesData };
-    const newMessageObject = {
-      id: Date.now(), // Using timestamp as a unique ID for simplicity
-      text: newMessage,
-    };
-
-    if (selectedUserId in updatedMessages) {
-      updatedMessages[selectedUserId] = [
-        ...updatedMessages[selectedUserId],
-        newMessageObject,
-      ];
+  
+    const userIDs = [currid, selectedUserId].sort(); // Sort the user IDs
+    const commonSubject = `chat.${userIDs[0]}.${userIDs[1]}`;
+  
+    if (nc) {
+      const messageObject = {
+        text: newMessage,
+        sender: currid,
+        timestamp: new Date().toISOString(), // Include the sender's user ID
+      };
+  
+      nc.publish(commonSubject, sc.encode(JSON.stringify(messageObject)));
+      console.log("Sent Message:", newMessage);
     } else {
-      updatedMessages[selectedUserId] = [newMessageObject];
+      console.error("Not connected to NATS");
     }
-
-    setMessagesData(updatedMessages);
-    setNewMessage('');
+    setNewMessage('')
   };
+  
 
   return (
     <div className="chat-container">
@@ -76,28 +122,30 @@ const ChatApp = () => {
       </div>
 
       <div className="message-section">
-        <h2>Messages</h2>
-        {selectedUserId ? (
-          <div>
-            <ul>
-              {messagesData[selectedUserId]?.map((message) => (
-                <li key={message.id}>{message.text}</li>
-              ))}
-            </ul>
-            <div className="message-input">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
-              />
-              <button onClick={handleSendMessage}>Send</button>
-            </div>
-          </div>
-        ) : (
-          <p>Select a user to view messages.</p>
-        )}
+  <h2>Messages</h2>
+  {selectedUserId ? (
+    <div>
+      {receivedMessages.map((message, index) => (
+        <div key={index} className={message.sender === currid ? "sent-message" : "received-message"}>
+          <p>{message.text}</p>
+          <small>{new Date(message.timestamp).toLocaleString()}</small>
+        </div>
+      ))}
+      <div className="message-input">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type your message..."
+        />
+        <button onClick={handleSendMessage}>Send</button>
       </div>
+    </div>
+  ) : (
+    <p>Select a user to view messages.</p>
+  )}
+</div>
+
     </div>
   );
 };

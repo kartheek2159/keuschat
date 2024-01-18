@@ -41,4 +41,13 @@
     padding: 5px 10px;
     cursor: pointer;
   }
+  .sent-message {
+    text-align: right;
+    /* Add any other styles for sent messages */
+  }
+  
+  .received-message {
+    text-align: left;
+    /* Add any other styles for received messages */
+  }
   
