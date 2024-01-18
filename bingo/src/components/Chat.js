@@ -67,12 +67,23 @@ const ChatApp = () => {
       .catch((error) => {
         console.error('Error fetching users:', error);
       });
-    
-
-      
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(`http://localhost:7000/msg/${chatid}`);
+          const messages = response.data.map((msg) => ({
+            text: msg.text,
+            sender: msg.senderid, // Extracting sender ID from the response data
+            timestamp: msg.createdAt,
+          }));
+          console.log(messages)
+          setReceivedMessages(messages);
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
+      };
+  
+      fetchData();
       }
-      
-
   , [nc]);
 
   const handleUserClick =async (userId) => {
@@ -88,21 +99,7 @@ const ChatApp = () => {
     }).catch((err)=>{
       console.log(err)
     })   
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:7000/msg/${chatid}`);
-        const messages = response.data.map((msg) => ({
-          text: msg.text,
-          sender: msg.senderid, // Extracting sender ID from the response data
-          timestamp: msg.createdAt,
-        }));
-        setReceivedMessages(messages);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
-
-    fetchData();
+   
     connectToNats(commonSubject);
     
 
