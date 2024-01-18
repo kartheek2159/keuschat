@@ -21,5 +21,18 @@ class chatrepo{
         });
         return chat;
     }
+    async findChatBySenderAndReceiver(senderid, recieverid) {
+        try {
+          const chat = await chatmodel.findOne({
+            members: {
+              $all: [senderid, recieverid],
+            },
+          });
+      
+          return chat;
+        } catch (error) {
+          throw error;
+        }
+      }
 }
 export default chatrepo;

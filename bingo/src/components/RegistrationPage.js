@@ -25,7 +25,7 @@ const RegistrationPage = () => {
       password:password,
     }).then((res)=>{
       console.log(res.data)
-      navigate('/chat')
+      navigate('/login')
     }).catch((err)=>{
       console.log(err)
     })
