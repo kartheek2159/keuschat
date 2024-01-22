@@ -1,5 +1,4 @@
 import React from 'react';
-import BasicChat from "./components/BasicChat.js"
 import Chat from "./components/Chat.js"
 import RegistrationPage from './components/RegistrationPage.js';
 import LoginPage from './components/LoginPage.js';
