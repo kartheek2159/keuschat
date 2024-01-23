@@ -20,6 +20,7 @@ const ChatApp = () => {
       const natsConnection = await connect({
         servers: "http://localhost:9090",
         
+        
       });
       setConnection(natsConnection);
       console.log(commonSubject)
@@ -102,7 +103,6 @@ const ChatApp = () => {
    
     connectToNats(commonSubject);
     
-
   };
 
   const handleSendMessage = () => {
@@ -118,6 +118,7 @@ const ChatApp = () => {
         text: newMessage,
         sender: currid,
         timestamp: new Date().toISOString(),
+        cid:chatid
       };
   
       nc.publish(commonSubject, sc.encode(JSON.stringify(messageObject)));
@@ -125,16 +126,6 @@ const ChatApp = () => {
     } else {
       console.error("Not connected to NATS");
     }
-    axios.post('http://localhost:7000/msg/',{
-      chatid:chatid,
-      senderid:currid,
-      text:newMessage
-    }).then((res)=>{
-      console.log("msg sent successfully")
-    }).catch((err)=>{
-      console.log(err)
-    })
-   
     setNewMessage('')
   };
 
