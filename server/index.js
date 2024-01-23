@@ -28,6 +28,7 @@ mongoose.connect(process.env.mongo_db_url,{dbName:'ChatKeus'}).then(
     console.log(error)
 })
 
+
 app.use('/auth',authroute)
 app.use('/chat',chatroute)
 app.use('/msg',msgroute)

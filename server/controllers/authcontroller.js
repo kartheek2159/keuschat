@@ -35,7 +35,7 @@ export const loginuser=async(req,res)=>{
                 const token=jwt.sign({username:user.username,id:user._id},'MERN',{expiresIn:"1h"})
                 res.status(200).json({user,token})
             }
-            
+             
         }
         else{
             res.status(404).json("user doesnot exist")
