@@ -32,3 +32,6 @@ app.use('/auth',authroute)
 app.use('/chat',chatroute)
 app.use('/msg',msgroute)
 app.use('/user',userroute)
+
+
+

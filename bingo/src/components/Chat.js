@@ -30,17 +30,13 @@ const ChatApp = () => {
             console.error(err);
           } else {
             const messageObject = JSON.parse(sc.decode(msg.data));
-            console.log("Received message:", messageObject);
-            
-            setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
-            console.log(subscription);
+            if(currid==messageObject.sender){
+              setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
+            }
           }
         },
       });
-      
-      
-      console.log(subscription);
-
+      connectToGlobalNats();
       return () => {
         if (nc) {
           nc.unsubscribe().then(() => {
@@ -75,7 +71,6 @@ const ChatApp = () => {
             sender: msg.senderid, // Extracting sender ID from the response data
             timestamp: msg.createdAt,
           }));
-          console.log(messages)
           setReceivedMessages(messages);
         } catch (error) {
           console.error('Error fetching messages:', error);
@@ -83,8 +78,8 @@ const ChatApp = () => {
       };
   
       fetchData();
-      }
-  , [nc]);
+      }, 
+   [nc]);
 
   const handleUserClick =async (userId) => {
     const userIDs = [currid, userId].sort(); 
@@ -118,6 +113,7 @@ const ChatApp = () => {
         text: newMessage,
         sender: currid,
         timestamp: new Date().toISOString(),
+        cid:chatid
       };
   
       nc.publish(commonSubject, sc.encode(JSON.stringify(messageObject)));
@@ -125,19 +121,57 @@ const ChatApp = () => {
     } else {
       console.error("Not connected to NATS");
     }
-    axios.post('http://localhost:7000/msg/',{
-      chatid:chatid,
-      senderid:currid,
-      text:newMessage
-    }).then((res)=>{
-      console.log("msg sent successfully")
-    }).catch((err)=>{
-      console.log(err)
-    })
-   
     setNewMessage('')
   };
-
+  const connectToGlobalNats = async () => {
+    try {
+      const natsConnection = await connect({
+        servers: "http://localhost:9090",
+      });
+  
+      setConnection(natsConnection);
+      console.log("gloabl executed")
+      
+      const subscription = natsConnection.subscribe("chat.>", {
+        callback: (err, msg) => {
+          if (err) {
+            console.error(err);
+          } else {
+            const messageObject = JSON.parse(sc.decode(msg.data));
+            
+            console.log("Received message in global nav:", messageObject);
+            if(messageObject.sender!=currid){
+              storeMessageInDatabase(messageObject);
+            setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
+            }
+          }
+        },
+      });
+  
+      return () => {
+        if (nc) {
+          nc.unsubscribe().then(() => {
+            console.log("Unsubscribed successfully");
+          });
+        }
+      };
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const storeMessageInDatabase = async (messageObject) => {
+    try {
+      const response = await axios.post('http://localhost:7000/msg/', {
+        chatid: messageObject.cid,
+        senderid: messageObject.sender,
+        text: messageObject.text,
+      });
+  
+      console.log("Message stored in the database:", response.data);
+    } catch (error) {
+      console.error('Error storing message in the database:', error);
+    }
+  };
   const handlelogout=()=>{
     localStorage.removeItem('userData')
     navigate('/login')
