@@ -1,27 +1,25 @@
-
 version: '3'
 services:
 
-#   react-app:
-#     # image: react_img
-#     build: ../bingo
-#     # used when image is needed to build while running the application
-#     depends_on:
-#       - api-server
-#       - nats
-#     stdin_open: true
-#     ports:
-#       - "3000:3000"
+  react-app:
+    # image: react_img
+    build: ../bingo
+    # used when image is needed to build while running the application
+    depends_on:
+      - api-server
+      - nats
+    ports:
+      - "3000:3000"
 
-# # # local mahcine port : container port number
-  
-#   api-server:
-#     # image: server_img
-#     build: ../server
-#     depends_on:
-#       - nats
-#     ports:
-#      - "7000:7000"
+  # local machine port : container port number
+
+  api-server:
+    # image: server_img
+    build: ../server
+    depends_on:
+      - nats
+    ports:
+      - "7000:7000"
     
   nats:
     image: nats:2.10.9-alpine
@@ -31,6 +29,4 @@ services:
       - "9090:9090"
     volumes:
       - ./dk.conf:/usr/src/app/dk.conf
-    command: ["nats-server","-c","/usr/src/app/dk.conf"]
-   
-  
+    command: ["nats-server", "-c", "/usr/src/app/dk.conf"]

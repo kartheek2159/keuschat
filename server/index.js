@@ -30,7 +30,7 @@ const connectToNats = async () => {
     console.log("Trying to make a connection to NATS");
     
     const natsConnection = await connect({
-      servers: "http://localhost:9090",
+      servers: "http://nats:9090",
       
       
     });
