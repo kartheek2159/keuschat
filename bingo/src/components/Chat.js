@@ -13,6 +13,7 @@ const ChatApp = () => {
   const [newMessage, setNewMessage] = useState('');
   const [nc, setConnection] = useState(undefined);
   const [receivedMessages, setReceivedMessages] = useState([]);
+  const [checkchat, setCheckchat] = useState([]);
   const sc = StringCodec();
   const [chatid,setChatId]=useState('')
   const connectToNats = async (commonSubject) => {
@@ -32,9 +33,13 @@ const ChatApp = () => {
           } else {
             const messageObject = JSON.parse(sc.decode(msg.data));
             console.log("Received message:", messageObject);
+            if (!checkchat.includes(selectedUserId)) {
+              setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
+            } 
             
-            setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
             console.log(subscription);
+            // setReceivedMessages((prevMessages) => [...prevMessages, messageObject]);
+            // console.log(subscription);
           }
         },
       });
@@ -91,6 +96,13 @@ const ChatApp = () => {
     const userIDs = [currid, userId].sort(); 
     const commonSubject = `chat.${userIDs[0]}.${userIDs[1]}`;
     setSelectedUserId(userId);
+    if (!checkchat.includes(userId)) {
+      // If not present, append the ID to the array
+      setCheckchat((prevIds) => [...prevIds, userId]);
+      console.log(`ID ${userId} added to checkchat array`);
+    } else {
+      console.log(`ID ${userId} is already present in checkchat array`);
+    }
     axios.post('http://localhost:7000/chat/',{
       senderid:userIDs[0],
       recieverid:userIDs[1],

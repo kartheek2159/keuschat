@@ -13,11 +13,13 @@ services:
 #     ports:
 #       - "3000:3000"
 
-# # local mahcine port : container port number
+# # # local mahcine port : container port number
   
 #   api-server:
-#     image: server_img
-#     # build: ../server
+#     # image: server_img
+#     build: ../server
+#     depends_on:
+#       - nats
 #     ports:
 #      - "7000:7000"
     
